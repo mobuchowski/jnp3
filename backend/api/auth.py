@@ -2,6 +2,8 @@ import json
 
 import jwt
 from django.conf import settings
+from api.models import User
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import exceptions
 from rest_framework.authentication import get_authorization_header, BaseAuthentication
 
@@ -13,7 +15,13 @@ class UserAuthenticationMiddleware(object):
         # One-time configuration and initialization.
 
     def __call__(self, request):
-        request.user_token = self.authenticate(request)
+
+        try:
+            request.user = User.objects.get(pk=self.authenticate(request))
+        except:
+            request.user = AnonymousUser()
+
+        print(request.user)
 
         response = self.get_response(request)
 
@@ -45,7 +53,7 @@ class UserAuthenticationMiddleware(object):
         except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed(('Signature invalid.'))
 
-        return token
+        return int(token)
 
 
 def payload_encode(payload):

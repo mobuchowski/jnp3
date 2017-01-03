@@ -1,21 +1,25 @@
 from rest_framework import permissions
 
 
-class FriendViewOnlyPermission(permissions.BasePermission):
-
+class ViewPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        return self.has_object_permission(self, request, obj)
+        return self.has_object_permission(request, view)
 
-    def has_object_permission(self, request, view, obj):
-        return request.method in permissions.SAFE_METHODS and request.user in obj.author.friends
+    def has_object_permission(self, request, view, obj=None):
+        return request.method in permissions.SAFE_METHODS
 
 
+class FriendViewPermission(permissions.BasePermission):
 
-class PostAuthorEditPermission(FriendViewOnlyPermission):
+    def has_object_permission(self, request, view, obj=None):
+        return request.method in permissions.SAFE_METHODS and request.user in obj.author.friends and not request.user.is_anonymous
 
-    def has_object_permission(self, request, view, obj):
+
+class AuthorPermission(FriendViewPermission):
+
+    def has_object_permission(self, request, view, obj=None):
         if obj is None:
             can_edit = True
         else:
             can_edit = request.user == obj.author
-        return can_edit or super(PostAuthorEditPermission, self).has_object_permission()
+        return can_edit or super(AuthorPermission, self).has_object_permission()

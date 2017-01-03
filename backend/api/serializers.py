@@ -1,10 +1,10 @@
 from rest_framework import serializers
 
-from api.models import Post, User
+from .models import User, Post
 
 
 class UserSerializer(serializers.ModelSerializer):
-    posts = serializers.HyperlinkedIdentityField('posts', view_name='userpost-list', lookup_field='username')
+    posts = serializers.HyperlinkedIdentityField(view_name='userpost-list', lookup_field='username')
 
     class Meta:
         model = User

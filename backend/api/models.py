@@ -7,16 +7,12 @@ from django.db import models
 
 
 class User(AbstractUser):
-    friends = models.ManyToManyField('self', related_name='friends', symmetrical=True)
+    friends = models.ManyToManyField('self', related_name='rev-friends', symmetrical=True)
 
     def __str__(self):
         return self.email
 
+
 class Post(models.Model):
     author = models.ForeignKey(User, null=False)
     body = models.TextField()
-
-
-class Photo(models.Model):
-    post = models.ForeignKey(Post, related_name='photos')
-    image = models.ImageField(upload_to="%Y/%m/%d")
