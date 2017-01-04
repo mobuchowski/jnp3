@@ -1,11 +1,31 @@
 from django.shortcuts import render
 
 # Create your views here.
-from rest_framework import generics
+from rest_framework import generics, permissions, status
 
 from api.serializers import PostSerializer, UserSerializer
 from api.models import Post, User
 from api.permissions import AuthorPermission, ViewPermission
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+
+class Register(APIView):
+    permission_classes = (
+        permissions.AllowAny,
+    )
+
+    def post(self, request):
+        serialized = UserSerializer(data=request.data, context={'request': request})
+        if serialized.is_valid():
+            User.objects.create_user(
+                username=serialized.initial_data['username'],
+                password=serialized.initial_data['password'],
+                email=serialized.initial_data['email'],
+            )
+            return Response(serialized.initial_data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serialized._errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostList(generics.ListCreateAPIView):
@@ -22,7 +42,7 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [
-        AuthorPermission
+        AuthorPermission,
     ]
 
 
@@ -31,7 +51,7 @@ class UserPostList(generics.ListAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [
-        AuthorPermission
+        AuthorPermission,
     ]
 
     def get_queryset(self):
@@ -44,7 +64,7 @@ class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [
-        AuthorPermission
+        AuthorPermission,
     ]
 
 
@@ -54,6 +74,6 @@ class UserDetail(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     lookup_field = 'username'
     permission_classes = [
-        ViewPermission
+        ViewPermission,
     ]
 

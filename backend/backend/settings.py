@@ -27,12 +27,18 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-JWT_SECRET = "1500100900"
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
         'api.permissions.AuthorPermission',
-    }
+    ),
+#    'DEFAULT_RENDERER_CLASSES': {
+#        'rest_framework.renderers.JSONRenderer',
+#    },
+
 }
 
 AUTH_USER_MODEL = 'api.User'
@@ -49,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'api',
 ]
 
@@ -57,7 +64,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'api.auth.UserAuthenticationMiddleware',
+#    'api.auth.UserAuthenticationMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
