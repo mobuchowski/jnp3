@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from django.http import JsonResponse
 # Create your views here.
 from rest_framework import generics, permissions, status
 
@@ -35,6 +35,9 @@ class PostList(generics.ListCreateAPIView):
     permission_classes = [
         AuthorPermission,
     ]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class PostDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -76,4 +79,34 @@ class UserDetail(generics.RetrieveAPIView):
     permission_classes = [
         ViewPermission,
     ]
+
+
+class CurrentUserDetail(generics.RetrieveAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [
+        ViewPermission,
+    ]
+
+    def get_object(self):
+        user = self.request.user
+        return user
+
+
+class CurrentUserPosts(generics.ListCreateAPIView):
+    model = Post
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [
+        AuthorPermission,
+    ]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super(CurrentUserPosts, self).get_queryset()
+        return queryset.filter(author=user.id)
+
+    def perform_create(self, serializer):
+        """Force author to the current user on save"""
+        serializer.save(author=self.request.user)
+
 

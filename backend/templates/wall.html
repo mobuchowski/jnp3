@@ -1,0 +1,53 @@
+{% load static %}
+
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="{% static "bootstrap/dist/css/bootstrap.css" %}">
+</head>
+
+<script src="{% static "angular/angular.js" %}"></script>
+<script src="{% static "angular/angular-resource.min.js" %}"></script>
+<script src="{% static "angular/angular-cookies.min.js" %}"></script>
+<script src="{% static "js/script.js" %}"></script>
+
+<body ng-app="JNPAPP.wall">
+
+<div ng-controller="CurrentUserController">
+{% verbatim %}
+    <p>Hello {{ currentUser.username }}!</p>
+    <p><a href="/api/users/current/">Your profile</a></p>
+    <p><a href="/api/users/current/friends">Your friends</a></p>
+{% endverbatim %}
+</div>
+
+<div class="container">
+<div ng-controller="WallPostsController">
+
+    <form class="form-inline">
+        <div class="form-group">
+            <input type="text" class="form-control" ng-model="newPost.body" placeholder="Enter text">
+        </div>
+        <div class="form-group">
+            <button class="btn btn-default" ng-click="Post()">Post</button>
+        </div>
+    </form>
+
+
+        {% verbatim %}
+        <div ng-repeat="post in posts">
+            <div class="post">
+                <p><a href="/api/users/{{ post.author.username }}/">{{ post.author.username }}</a></p>
+                <p>{{ post.body }}</p>
+            </div>
+        </div>
+        {% endverbatim %}
+</div>
+
+<script>
+var app = angular.module('JNPAPP.api');
+app.config(['$httpProvider', function($httpProvider) {
+    $httpProvider.defaults.headers.common['X-CSRFToken'] = '{{ csrf_token|escapejs }}';
+}]);
+</script>
+</body>
+</html>
