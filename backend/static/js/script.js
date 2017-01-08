@@ -3,17 +3,17 @@ angular.module('JNPAPP.api', ['ngResource'])
       $resourceProvider.defaults.stripTrailingSlashes = false;
     })
     .factory('User', ['$resource', function ($resource) {
-        return $resource('api/users/:username/', {},
-            {'save': {method: 'POST', url: "api/users/create/"}}, {stripTrailingSlashes: false});
+        return $resource('/api/users/:username/', {},
+            {'save': {method: 'POST', url: "/api/users/create/"}}, {stripTrailingSlashes: false});
     }])
     .factory('Post', ['$resource', function($resource) {
-        return $resource('api/posts/:id/', {id: '@id'});
+        return $resource('/api/posts/:id/', {id: '@id'});
     }])
     .factory('UserPosts', ['$resource', function($resource) {
-        return $resource('api/users/:username/posts/');
+        return $resource('/api/users/:username/posts/');
     }])
     .factory('UserFriends', ['$resource', function($resource) {
-        return $resource('api/user/:username/friends/');
+        return $resource('/api/user/:username/friends/');
     }])
     .factory('CurrentUser', ['$resource', function($resource) {
         return $resource('/api/users/current/');
@@ -22,15 +22,10 @@ angular.module('JNPAPP.api', ['ngResource'])
         return $resource('/api/users/current/posts/');
     }])
     .factory('UserFriends', ['$resource', function($resource) {
-        return $resource('api/user/current/friends/');
+        return $resource('/api/user/current/friends/');
     }]);
 
-angular.module('JNPAPP.app.users', ['JNPAPP.api'])
-    .controller('AppController', ['$scope', 'User', function($scope, User) {
-        return $scope.users = User.query()
-    }])
-
-angular.module('JNPAPP.api.auth', ['ngCookies', 'JNPAPP.app.users']).
+angular.module('JNPAPP.auth', ['ngCookies', 'JNPAPP.api']).
     config(['$httpProvider', function($httpProvider){
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -47,12 +42,6 @@ angular.module('JNPAPP.api.auth', ['ngCookies', 'JNPAPP.app.users']).
         }
     }])
     .controller('LoginController', ['$scope', '$http', '$cookies', function($scope, $http, $cookies) {
-        // Angular does not detect auto-fill or auto-complete. If the browser
-        // autofills "username", Angular will be unaware of this and think
-        // the $scope.username is blank. To workaround this we use the
-        // autofill-event polyfill [4][5]
-        //$('#id_auth_form input').checkAndTriggerAutoFillEvent();
-
         $scope.user = new Object();
         $scope.user.username = null;
         $scope.user.password = null;
@@ -65,16 +54,17 @@ angular.module('JNPAPP.api.auth', ['ngCookies', 'JNPAPP.app.users']).
                         $scope.loginError = null;
                         $cookies.put('Authorization', "Token " + $scope.userToken, {'path': '/'});
                         window.location.replace("/wall/")
-                    }).
-                catch(function(data){
-                    $scope.loginError = data.data;
-                });
+                    }).then(function(){
+                        $scope.loginError = null;
+                    }, function(data) {
+                        $scope.loginError = data.data;
+                    });
         };
 
         $scope.Logout = function(){
             api.auth.logout(function(){
                 $scope.user = undefined;
-                $cookies.put('Authorization', "Token " + $scope.userToken);
+                $cookies.remove('Authorization');
             });
         };
     }])
@@ -92,7 +82,7 @@ angular.module('JNPAPP.wall', ['ngCookies', 'JNPAPP.api'])
     .config(['$httpProvider', function($httpProvider) {
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
-        //$httpProvider.interceptors.push('authInterceptor');
+        $httpProvider.interceptors.push('authInterceptor');
     }])
     .run(function($http, $cookies) {
         var auth = $cookies.get('Authorization');
@@ -101,11 +91,20 @@ angular.module('JNPAPP.wall', ['ngCookies', 'JNPAPP.api'])
     .controller('WallPostsController', ['$scope', 'CurrentUserPosts', function($scope, CurrentUserPosts) {
         $scope.posts = CurrentUserPosts.query();
 
+        $scope.newPostError = null;
         $scope.newPost = new CurrentUserPosts();
         $scope.Post = function () {
             $scope.newPost.$save().then(function(result) {
+                $scope.newPost = new CurrentUserPosts();
                 $scope.posts.push(result);
             })
+            .then(function() {
+                    $scope.newPostError = null;
+                },
+                function(rejection) {
+                    $scope.newPostError = rejection.data;
+                }
+            )
         };
     }])
     .controller('FriendsController', ['$scope', 'User', function($scope, User) {
