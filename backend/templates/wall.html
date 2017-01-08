@@ -2,25 +2,31 @@
 
 <html>
 <head>
-<link rel="stylesheet" type="text/css" href="{% static "bootstrap/dist/css/bootstrap.css" %}">
-</head>
+
+<link rel="stylesheet" href={% static "bootstrap/dist/css/bootstrap.min.css" %}>
+<script src="{% static "bootstrap/dist/js/bootstrap.min.js" %}"></script>
 
 <script src="{% static "angular/angular.js" %}"></script>
 <script src="{% static "angular/angular-resource.min.js" %}"></script>
 <script src="{% static "angular/angular-cookies.min.js" %}"></script>
-<script src="{% static "js/script.js" %}"></script>
 
-<body ng-app="JNPAPP.wall">
+<script src="{% static "js/api.js" %}"></script>
+<script src="{% static "js/wall.js" %}"></script>
 
-<div ng-controller="CurrentUserController">
+</head>
+
+<body ng-app="JNPAPP.wall" class="container-fluid">
+
+<div class="container-fluid" ng-controller="CurrentUserController">
+<div class="row">
 {% verbatim %}
-    <p>Hello {{ currentUser.username }}!</p>
-    <p><a href="/api/users/current/">Your profile</a></p>
-    <p><a href="/api/users/current/friends">Your friends</a></p>
+    <div class="col-sm-4">Hello {{ currentUser.username }}!</div>
+    <div class="col-sm-4"><a href="/api/users/current/">Your profile</a></div>
+    <div class="col-sm-4"><a href="/api/users/current/friends">Your friends</a></div>
 {% endverbatim %}
 </div>
+</div>
 
-<div class="container">
 <div ng-controller="WallPostsController">
     <form class="form-inline">
         <div class="form-group">
@@ -35,7 +41,6 @@
         {% endverbatim %}
     </form>
 
-
     {% verbatim %}
     <div ng-repeat="post in posts">
         <div class="post">
@@ -46,6 +51,27 @@
     {% endverbatim %}
 </div>
 
+<div ng-controller="UserFriendsController">
+    <h1>Your friends:</h1>
+    {% verbatim %}
+    <div ng-repeat="friend in friends">
+        <div class="friendEntry">
+            <p><a href="/api/users/{{ friend.username }}/">{{ friend.username }}</a></p>
+        </div>
+    </div>
+    {% endverbatim %}
+
+    <form class="form-inline">
+        <div class="form-group">
+            <input type="text" class="form-control" ng-model="newFriend.username" placeholder="Add friend">
+            <p ng-show="newFriendError['username']" ng-bind="newFriendError['username']" class="alert alert-danger"></p>
+        </div>
+        <div class="form-group">
+            <button class="btn btn-default" ng-click="AddFriend()">Add Friend</button>
+        </div>
+    </form>
+
+</div>
 <script>
 var app = angular.module('JNPAPP.api');
 app.config(['$httpProvider', function($httpProvider) {

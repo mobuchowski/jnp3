@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.http import JsonResponse
 # Create your views here.
 from rest_framework import generics, permissions, status
@@ -49,17 +48,17 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     ]
 
 
-class UserPostList(generics.ListAPIView):
-    model = Post
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    permission_classes = [
-        AuthorPermission,
-    ]
-
+class UserPostList(PostList):
     def get_queryset(self):
         queryset = super(UserPostList, self).get_queryset()
         return queryset.filter(author__username=self.kwargs.get('username'))
+
+
+class CurrentUserPostList(PostList):
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super(CurrentUserPostList, self).get_queryset()
+        return queryset.filter(author=user.id)
 
 
 class UserList(generics.ListCreateAPIView):
@@ -81,32 +80,39 @@ class UserDetail(generics.RetrieveAPIView):
     ]
 
 
-class CurrentUserDetail(generics.RetrieveAPIView):
-    serializer_class = UserSerializer
-    permission_classes = [
-        ViewPermission,
-    ]
-
+class CurrentUserDetail(UserDetail):
     def get_object(self):
         user = self.request.user
         return user
 
 
-class CurrentUserPosts(generics.ListCreateAPIView):
-    model = Post
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
+class UserFriendList(generics.ListAPIView):
+    model = User
+    serializer_class = UserSerializer
+    lookup_field = 'username'
+    permission_classes = [
+        ViewPermission,
+    ]
+
+    def get_queryset(self):
+        user = User.objects.get(username=self.kwargs.get('username'))
+        return user.friends
+
+
+class CurrentUserFriendList(UserFriendList):
     permission_classes = [
         AuthorPermission,
     ]
 
     def get_queryset(self):
         user = self.request.user
-        queryset = super(CurrentUserPosts, self).get_queryset()
-        return queryset.filter(author=user.id)
+        return user.friends
 
-    def perform_create(self, serializer):
-        """Force author to the current user on save"""
-        serializer.save(author=self.request.user)
-
-
+    def post(self, request):
+        try:
+            user = User.objects.get(username=request.data['username'])
+        except User.DoesNotExist:
+            return JsonResponse({'username': 'No such a user'}, status=status.HTTP_404_NOT_FOUND)
+        request.user.friends.add(user)
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
