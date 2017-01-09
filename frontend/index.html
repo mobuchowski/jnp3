@@ -1,0 +1,35 @@
+<html>
+<head>
+<script src="/bower_components/angular/angular.js"></script>
+<script src="/bower_components/angular-resource/angular-resource.min.js"></script>
+<script src="/bower_components/angular-cookies/angular-cookies.min.js"></script>
+<script src="/bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
+<link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.css">
+<script src="bower_components/angular-bootstrap/ui-bootstrap.min.js"></script>
+
+<script src="/script.js"></script>
+<script src="/public/js/api.js"></script>
+</head>
+
+<body ng-app="JNPAPP" class="container-fluid">
+<header>
+<div class="navbar navbar-default" ng-controller="CurrentUserController">
+<div class="row">
+    <div class="col-sm-4">Hello {{ currentUser.username }}!</div>
+    <div class="col-sm-4"><a href="/api/users/current/">Your profile</a></div>
+    <div class="col-sm-4"><a href="/api/users/current/friends">Your friends</a></div>
+</div>
+</div>
+</header>
+<div class="row">
+<div class="col-sm-8" ui-view></div>
+<div class="col-sm-4" ng-include="'pages/friends.html'"></div>
+</div>
+<script>
+var app = angular.module('JNPAPP.api');
+app.config(['$httpProvider', function($httpProvider) {
+    $httpProvider.defaults.headers.common['X-CSRFToken'] = '{{ csrf_token|escapejs }}';
+}]);
+</script>
+</body>
+</html>
