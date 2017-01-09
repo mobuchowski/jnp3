@@ -4,7 +4,8 @@ from rest_framework import generics, permissions, status
 
 from api.serializers import PostSerializer, UserSerializer
 from api.models import Post, User
-from api.permissions import AuthorPermission, ViewPermission
+from api.permissions import AuthorPermission, ViewPermission, FriendViewPermission
+from api.elasticsearch import post_search, post_create
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -24,7 +25,20 @@ class Register(APIView):
             )
             return Response(serialized.initial_data, status=status.HTTP_201_CREATED)
         else:
-            return Response(serialized._errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FeedSearchList(APIView):
+    permission_classes = (
+        FriendViewPermission
+    )
+
+    def post(self, request):
+        text = request.data.get('post', default=None)
+        if text is None:
+            return Response({"error": "Empty request"}, status=status.HTTP_400_BAD_REQUEST)
+        vals = post_search()
+
 
 
 class PostList(generics.ListCreateAPIView):
@@ -46,6 +60,15 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [
         AuthorPermission,
     ]
+
+    def create(self, request, *args, **kwargs):
+        serialized = PostSerializer(data=request.data)
+        if serialized.is_valid():
+            serialized.save()
+            post_create(request.user, serialized.validated_data['body'])
+            return Response(serialized.validated_data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserPostList(PostList):
