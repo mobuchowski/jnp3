@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from views import login, wall
+from backend.views import login, wall
 
 import api.urls
 
