@@ -11,19 +11,21 @@
 <script src="/public/js/api.js"></script>
 </head>
 
-<body ng-app="JNPAPP" class="container-fluid">
+<body ng-app="JNPAPP" class="container-fluid" style="padding-top: 70px;">
 <header>
-<div class="navbar navbar-default" ng-controller="CurrentUserController">
+<div class="navbar navbar-default navbar-fixed-top" ng-controller="CurrentUserController">
 <div class="row">
-    <div class="col-sm-4">Hello {{ currentUser.username }}!</div>
-    <div class="col-sm-4"><a href="/api/users/current/">Your profile</a></div>
-    <div class="col-sm-4"><a href="/api/users/current/friends">Your friends</a></div>
-</div>
+    <div class="col-sm-3">Hello {{ username }}!</div>
+    <div class="col-sm-3"><a ui-sref="wall" href="#">Main Page</a></div>
+    <div class="col-sm-3"><a ui-sref="userDetails.posts({username: 'current'})" href="#">Your profile</a></div>
+    <div class="col-sm-3"><a ui-sref="userDetails.friends({username: 'current'})" href="#">Your friends</a></div>
 </div>
 </header>
 <div class="row">
 <div class="col-sm-8" ui-view></div>
-<div class="col-sm-4" ng-include="'pages/friends.html'"></div>
+<div ng-controller="CurrentUserController">
+<div class="col-sm-4" ng-include="'pages/friendsSideBar.html'" ></div>
+</div>
 </div>
 <script>
 var app = angular.module('JNPAPP.api');
