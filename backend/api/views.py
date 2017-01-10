@@ -5,7 +5,7 @@ from rest_framework import generics, permissions, status
 from api.serializers import PostSerializer, UserSerializer
 from api.models import Post, User
 from api.permissions import AuthorPermission, ViewPermission, FriendViewPermission
-from api.elasticsearch import post_search, post_create
+from api.elasticsearchApi import post_search, post_create
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -136,6 +136,8 @@ class CurrentUserFriendList(UserFriendList):
             user = User.objects.get(username=request.data['username'])
         except User.DoesNotExist:
             return JsonResponse({'username': 'No such a user'}, status=status.HTTP_404_NOT_FOUND)
-        request.user.friends.add(user)
+        if request.user.friends.all().filter(username=user.username) is not None:
+            return JsonResponse({'username': 'Already a friend'}, status=status.HTTP_409_CONFLICT)
+        request.user.friends.save(user)
         serializer = self.get_serializer(user)
         return Response(serializer.data)

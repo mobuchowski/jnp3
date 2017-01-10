@@ -15,20 +15,52 @@ angular.module('JNPAPP', ['ngCookies', 'ui.router', 'JNPAPP.api'])
         $stateProvider
             .state('wall', {
                 url: '/',
+                templateUrl: 'pages/wall.html',
+                controller: 'WallPostsController'
+            })
+            .state('userDetails', {
+                url: '/user/:username',
+                templateUrl: 'pages/userDetail.html',
+                controller: 'UserDetailController'
+            })
+            .state('userDetails.posts', {
+                url: '/posts',
                 views: {
-                    '': {
-                        templateUrl: 'pages/wall.html',
-                        controller: 'WallPostsController'
+                    'content': {
+                        templateUrl: 'pages/postList.html',
+                        controller: 'UserPostsController',
                     }
                 }
             })
-
+            .state('userDetails.friends', {
+                url: '/friends',
+                views: {
+                    'content': {
+                        templateUrl: 'pages/friendList.html',
+                        controller: 'UserFriendsController'
+                    }
+                }
+            })
        $urlRouterProvider.otherwise('/');
     }])
     .run(function($http, $cookies) {
         var auth = $cookies.get('Authorization');
         $http.defaults.headers.common['Authorization'] = auth ;
     })
+    .service('UserService', ['User', 'UserPosts', 'UserFriends', function(User, UserPost, UserFriends) {
+        this.getUser = function(username) {
+            return User.get({'username': username});
+        };
+
+        this.getPosts = function(username) {
+            return UserPost.query({'username': username});
+        };
+
+        this.getFriends = function(username) {
+            this.friends = UserFriends.query({'username': username});
+            return this.friends;
+        };
+    }])
     .service('CurrentUserService', ['User', 'UserPosts', 'UserFriends', 'Post', function(User, UserPost, UserFriends, Post) {
         this.getUser = function() {
             return User.get({'username': 'current'});
@@ -54,33 +86,45 @@ angular.module('JNPAPP', ['ngCookies', 'ui.router', 'JNPAPP.api'])
             )
         };
 
+        var friends = UserFriends.query({'username': 'current'});
+
         this.getFriends = function() {
-            this.friends = UserFriends.query({'username': 'current'});
-            return this.friends;
+            return friends;
         };
+    }])
+    .controller('CurrentUserFriendsController', ['$scope', 'CurrentUserService', 'UserFriends', function($scope, CurrentUserService, UserFriends) {
+        $scope.friends = CurrentUserService.getFriends();
+        $scope.newFriend = new UserFriends();
+        $scope.newFriendError = null;
 
-        this.newFriend = new UserFriends();
-        this.newFriendError = null;
-
-        this.addFriend = function() {
-            this.newFriend.$save({'username': 'current'}).then(function(result) {
-                this.friends.push(result);
-                this.newFriend = new UserFriends();
+        $scope.AddFriend = function() {
+            $scope.newFriend.$save({'username': 'current'}).then(function(result) {
+                $scope.friends.push(result);
+                $scope.newFriend = new UserFriends();
             }).then(function () {
-                this.newFriendError = null;
+                $scope.newFriendError = null;
             }, function (rejection) {
-                this.newFriendError = rejection.data;
+                $scope.newFriendError = rejection.data;
             });
         };
     }])
-    .controller('UserFriendsController', ['$scope', 'CurrentUserService', function($scope, CurrentUserService) {
-        $scope.friends = CurrentUserService.getFriends();
-        $scope.AddFriend = CurrentUserService.addFriend;
-    }])
     .controller('CurrentUserController', ['$scope', 'CurrentUserService', function($scope, CurrentUserService) {
         $scope.currentUser = CurrentUserService.getUser();
+        $scope.currentUser.$promise.then(function (response) {
+            $scope.username = response.username;
+        })
+        $scope.friends = CurrentUserService.getFriends();
     }])
     .controller('WallPostsController', ['$scope', 'CurrentUserService', function($scope, CurrentUserService) {
         $scope.posts = CurrentUserService.getPosts();
         $scope.Post = CurrentUserService.addPost;
+    }])
+    .controller('UserDetailController', ['$scope', '$stateParams', 'UserService', function($scope, $stateParams, UserService) {
+        $scope.username = $stateParams.username;
+    }])
+    .controller('UserPostsController', ['$scope', '$stateParams', 'UserService', function($scope, $stateParams, UserService) {
+        $scope.posts = UserService.getPosts($stateParams.username);
+    }])
+    .controller('UserFriendsController', ['$scope', '$stateParams', 'UserService', function($scope, $stateParams, UserService) {
+        $scope.friends = UserService.getFriends($stateParams.username);
     }])
