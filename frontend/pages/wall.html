@@ -12,3 +12,6 @@
 
 <div ng-include="'pages/postList.html'"></div>
 
+<button class="btn btn-default" ng-show="pageNumber > 0" ng-click="getPosts()">More posts</button>
+<div class="alert alert-info" ng-show="pageNumber == 0">No more posts</div>
+<p ng-repeat="(name, errs) in postsLoadError" class="alert alert-danger"><strong>{{ name }}</strong>: {{ errs.join(', ') }}</p>

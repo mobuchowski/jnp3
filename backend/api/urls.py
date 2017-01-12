@@ -21,6 +21,7 @@ post_urls = [
 
 urlpatterns = [
     url(r'^users/', include(user_urls)),
+    url(r'^wallPosts/$', views.WallPosts.as_view(), name="wall-posts"),
     url(r'^posts/', include(post_urls)),
     url(r'^token/auth/', obtain_auth_token),
 ]

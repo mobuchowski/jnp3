@@ -62,62 +62,115 @@ angular.module('JNPAPP', ['ngCookies', 'ui.router', 'JNPAPP.api'])
         };
     }])
     .service('CurrentUserService', ['User', 'UserPosts', 'UserFriends', 'Post', function(User, UserPost, UserFriends, Post) {
+        var user = User.get({'username': 'current'});
         this.getUser = function() {
-            return User.get({'username': 'current'});
+            return user;
         };
 
         this.getPosts = function() {
             return UserPost.query({'username': 'current'});
         };
 
-        this.newPostError = null;
-        this.newPost = new Post();
-        this.Post = function () {
-            this.newPost.$save().then(function(result) {
-                this.newPost = new Post();
-                this.posts.unshift(result);
-            })
-            .then(function() {
-                    this.newPostError = null;
+        this.getFriends = function() {
+            return UserFriends.query({'username': 'current'});
+        };
+
+        this.addFriend = function(newFriend, onSuccess, onError) {
+            newFriend.$save({'username': 'current'}).then(function(result) {
+                onSuccess(result);
+            }).then(function () {
+            }, function (rejection) {
+                onError(rejection);
+            });
+        }
+    }])
+    .service('WallService', ['$http', 'Post', function($http, Post) {
+        this.getPosts = function(pageNumber, onSuccess, onError) {
+            if(pageNumber == 0)
+                return;
+            $http({
+                method: 'GET',
+                url: apiUrl + 'wallPosts/',
+                params: {
+                    page: pageNumber
                 },
+            }).then(function(response) {
+                onSuccess(response.data.results);
+            }).then( function(){}, function(rejection) {
+                onError(rejection);
+            })
+        };
+
+        this.addPost = function (post, onSuccess, onError) {
+            post.$save().then(function(result) {
+                onSuccess(result);
+            })
+            .then(function() {},
                 function(rejection) {
-                    this.newPostError = rejection.data;
+                    onError(rejection);
                 }
             )
         };
 
-        var friends = UserFriends.query({'username': 'current'});
-
-        this.getFriends = function() {
-            return friends;
-        };
+        return this;
     }])
-    .controller('CurrentUserFriendsController', ['$scope', 'CurrentUserService', 'UserFriends', function($scope, CurrentUserService, UserFriends) {
-        $scope.friends = CurrentUserService.getFriends();
-        $scope.newFriend = new UserFriends();
-        $scope.newFriendError = null;
-
-        $scope.AddFriend = function() {
-            $scope.newFriend.$save({'username': 'current'}).then(function(result) {
-                $scope.friends.push(result);
-                $scope.newFriend = new UserFriends();
-            }).then(function () {
-                $scope.newFriendError = null;
-            }, function (rejection) {
-                $scope.newFriendError = rejection.data;
-            });
-        };
-    }])
-    .controller('CurrentUserController', ['$scope', 'CurrentUserService', function($scope, CurrentUserService) {
+    .controller('CurrentUserController', ['$scope', 'CurrentUserService', 'UserFriends', function($scope, CurrentUserService, UserFriends) {
         $scope.currentUser = CurrentUserService.getUser();
         $scope.currentUser.$promise.then(function (response) {
             $scope.username = response.username;
         })
         $scope.friends = CurrentUserService.getFriends();
+        $scope.newFriend = new UserFriends();
+        $scope.newFriendError = null;
+
+        $scope.addFriend = function() {
+            CurrentUserService.addFriend($scope.newFriend, function(result) {
+                $scope.friends.push(result);
+                $scope.newFriend = new UserFriends();
+                $scope.newFriendError = null;
+            },
+            function (rejection) {
+                $scope.newFriendError = rejection.data;
+            });
+        };
+
     }])
-    .controller('WallPostsController', ['$scope', 'CurrentUserService', function($scope, CurrentUserService) {
-        $scope.posts = CurrentUserService.getPosts();
-        $scope.Post = CurrentUserService.addPost;
+    .controller('WallPostsController', ['$scope', 'WallService', 'Post', function($scope, WallService, Post) {
+        $scope.posts = [];
+        $scope.newPost = new Post();
+        $scope.newPostError = null;
+        $scope.pageNumber = 1;
+        var onPostsLoad = function(result) {
+            Array.prototype.push.apply($scope.posts, result);
+            $scope.pageNumber++;
+        };
+
+        var onPostsLoadError= function(rejection) {
+            if(rejection.status == 404)
+                $scope.pageNumber = 0;
+            else
+                $scope.postsLoadError = rejection.data;
+        }
+
+        var onNewPost = function(result) {
+            $scope.newPost = new Post();
+            $scope.newPostError = null;
+            $scope.posts.unshift(result);
+        }
+
+        var onNewPostError = function(rejection) {
+            $scope.newPostError = rejection.data;
+        }
+
+        $scope.getPosts = function() {
+            WallService.getPosts($scope.pageNumber, onPostsLoad, onPostsLoadError);
+        }
+
+        $scope.Post = function () {
+            WallService.addPost($scope.newPost, onNewPost, onNewPostError);
+        }
+
+        $scope.getPosts();
     }])
     .controller('UserDetailController', ['$scope', '$stateParams', 'UserService', function($scope, $stateParams, UserService) {
         $scope.username = $stateParams.username;
