@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.db.models import Q
 # Create your views here.
 from rest_framework import generics, permissions, status
 
@@ -8,6 +9,7 @@ from api.permissions import AuthorPermission, ViewPermission, FriendViewPermissi
 from api.elasticsearchApi import post_search, post_create
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 
 
 class Register(APIView):
@@ -136,8 +138,24 @@ class CurrentUserFriendList(UserFriendList):
             user = User.objects.get(username=request.data['username'])
         except User.DoesNotExist:
             return JsonResponse({'username': 'No such a user'}, status=status.HTTP_404_NOT_FOUND)
-        if request.user.friends.all().filter(username=user.username) is not None:
+        if user == request.user:
+            return JsonResponse({'username': 'You can\'t be your friend'}, status=status.HTTP_409_CONFLICT)
+        if len(request.user.friends.all().filter(username=user.username)) > 0:
             return JsonResponse({'username': 'Already a friend'}, status=status.HTTP_409_CONFLICT)
-        request.user.friends.save(user)
+        request.user.friends.add(user)
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+
+
+class WallPostsPagination(PageNumberPagination):
+    page_size = 10
+
+
+class WallPosts(generics.ListAPIView):
+    model = Post
+    serializer_class = PostSerializer
+    pagination_class = WallPostsPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        return Post.objects.filter(Q(author__in=user.friends.all()) | Q(author=user))
