@@ -1,0 +1,12 @@
+body {
+    background: whitesmoke;
+}
+.post {
+    background-color: white;
+    border: solid antiquewhite;
+    border-radius: 5px;
+    border-width: 2px;
+    margin: 20px;
+    min-height: 200px;
+    padding: 15px;
+}
