@@ -6,7 +6,7 @@ angular.module('JNPAPP.api', ['ngResource'])
     })
     .factory('User', ['$resource', function ($resource) {
         return $resource(apiUrl + 'users/:username/', {},
-            {'save': {method: 'POST', url: "http://localhost:8000/api/users/create/"}}, {stripTrailingSlashes: false});
+            {'save': {method: 'POST', url: apiUrl + "/api/users/create/"}}, {stripTrailingSlashes: false});
     }])
     .factory('Post', ['$resource', function($resource) {
         return $resource(apiUrl + 'posts/:id/', {id: '@id'});
