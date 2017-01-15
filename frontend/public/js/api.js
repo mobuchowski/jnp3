@@ -1,4 +1,4 @@
-var apiUrl = 'http://localhost:8000/api/'
+var apiUrl = 'http://jnp3-dev.eu-central-1.elasticbeanstalk.com/'
 
 angular.module('JNPAPP.api', ['ngResource'])
     .config(function($resourceProvider) {
