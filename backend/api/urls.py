@@ -15,6 +15,7 @@ user_urls = [
 ]
 
 post_urls = [
+    url(r'search/', views.FeedSearchList.as_view(), name='post-search'),
     url(r'^(?P<pk>\d+)/$', views.PostDetail.as_view(), name='post-detail'),
     url(r'^$', views.PostList.as_view(), name='post-list')
 ]

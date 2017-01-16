@@ -2,23 +2,23 @@ from elasticsearch import Elasticsearch
 import json
 
 # TODO: Host do podstawienia
-es = Elasticsearch(['host:9200'])
+es = Elasticsearch(['localhost:9200'])
 
 mappings = {
     "post": {
         "properties": {
             "text": {
-                "type" : "text",
-                "analyzer": "english",
+                "type": "text",
+                "analyzer": "english"
             },
             "author": {
-                "type": "long",
+                "type": "long"
             },
             "id": {
                 "type": "long"
             }
         }
-    },
+    }
 }
 
 def create_and_push_mappings():
@@ -26,22 +26,30 @@ def create_and_push_mappings():
 
 
 def post_search(user, text):
-    friends = [friend.id for friend in user.friends]
-    results = es.search(index='posts', doc_type='post', body={
+    friends = [friend.id for friend in user.friends.all()]
+    body = {
         "query": {
-            "match": {
-                "text": text,
-            },
-            "term": {
-                "author": json.dumps(friends)
+            "bool": {
+                "should": {
+                    "match": {
+                        "text": text
+                    }
+                },
+                "must": {
+                    "terms": {
+                        "author": friends
+                    }
+                }
             }
         }
-    })
-    return [result['id'] for result in results['hits']['hits']['_source']]
+    }
+    results = es.search(index='posts', doc_type='post', body=body)
+    return [result['_source']['id'] for result in results['hits']['hits']]
 
 
-def post_create(user, text):
-    es.create(index='posts', doc_type='post', body={
+def post_create(user, text, id):
+    es.create(index='posts', doc_type='post', id=id, body={
         "author": user.id,
-        "text": text
+        "text": text,
+        "id": id
     })

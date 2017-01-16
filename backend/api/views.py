@@ -32,15 +32,17 @@ class Register(APIView):
 
 class FeedSearchList(APIView):
     permission_classes = (
-        FriendViewPermission
+        FriendViewPermission,
     )
 
     def post(self, request):
-        text = request.data.get('post', default=None)
+        text = request.data.get('text', default=None)
         if text is None:
             return Response({"error": "Empty request"}, status=status.HTTP_400_BAD_REQUEST)
-        vals = post_search()
-
+        vals = post_search(request.user, text)[:5]
+        data = Post.objects.all().filter(pk__in=vals)
+        serializer = PostSerializer(data, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class PostList(generics.ListCreateAPIView):
@@ -52,7 +54,8 @@ class PostList(generics.ListCreateAPIView):
     ]
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        post = serializer.save(author=self.request.user)
+        post_create(self.request.user, serializer.validated_data['body'], post.id)
 
 
 class PostDetail(generics.RetrieveUpdateDestroyAPIView):
