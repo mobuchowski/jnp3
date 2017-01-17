@@ -129,8 +129,7 @@ else:
 if 'ELASTICSEARCH' in os.environ:
     ES_CLIENT = Elasticsearch([os.environ['ELASTICSEARCH']])
 else:
-    #ES_CLIENT = Elasticsearch(['localhost:9200'])
-    ES_CLIENT = Elasticsearch(['https://search-jnp3-x3svxmwzm4xrrbcmyydkiqz4mu.eu-central-1.es.amazonaws.com/'])
+    ES_CLIENT = Elasticsearch(['localhost:9200'])
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
