@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from elasticsearch import Elasticsearch
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -123,6 +124,13 @@ else:
         }
     }
 
+
+# Elasticsearch index
+if 'ELASTICSEARCH' in os.environ:
+    ES_CLIENT = Elasticsearch([os.environ['ELASTICSEARCH']])
+else:
+    #ES_CLIENT = Elasticsearch(['localhost:9200'])
+    ES_CLIENT = Elasticsearch(['https://search-jnp3-x3svxmwzm4xrrbcmyydkiqz4mu.eu-central-1.es.amazonaws.com/'])
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
