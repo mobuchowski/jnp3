@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 
+from django.http import Http404
+
 
 class Register(APIView):
     permission_classes = (
@@ -111,6 +113,8 @@ class UserDetail(generics.RetrieveAPIView):
 class CurrentUserDetail(UserDetail):
     def get_object(self):
         user = self.request.user
+        if user.is_anonymous:
+            raise Http404
         return user
 
 
