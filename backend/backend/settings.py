@@ -22,6 +22,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '8sn^6#gf-tq+=(vtse-akfdoa702k+4yrk$&^t9+z-q*(^8o0i'
 
+GOOGLE_OAUTH2_CLIENT_ID = "540111730776-rn6k3bm5t4mrb65jp0166qq5ae8na9k1.apps.googleusercontent.com"
+GOOGLE_OAUTH2_CLIENT_SECRET = "H4vLtCxc3faLC69bLG5x62TW"
+
 # SECURITY WARNING: don't run with debug turned on in production!
 if 'DJANGO_NO_DEBUG' in os.environ:
     DEBUG = False
@@ -62,7 +65,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'api',
-    'corsheaders'
+    'corsheaders',
+    'social_auth',
 ]
 
 MIDDLEWARE = [
