@@ -1,14 +1,13 @@
-from elasticsearch import Elasticsearch
+from django.conf import settings
 import json
 
-# TODO: Host do podstawienia
-es = Elasticsearch(['localhost:9200'])
+es = settings.ES_CLIENT
 
 mappings = {
     "post": {
         "properties": {
             "text": {
-                "type": "text",
+                "type": "string",
                 "analyzer": "english"
             },
             "author": {
@@ -24,6 +23,8 @@ mappings = {
 def create_and_push_mappings():
     es.indices.create(index='posts', body={"mappings": mappings})
 
+def index_exists():
+    return es.indices.exists(index='posts')
 
 def post_search(user, text):
     friends = [friend.id for friend in user.friends.all()]
