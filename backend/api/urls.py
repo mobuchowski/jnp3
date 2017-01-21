@@ -5,6 +5,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 user_urls = [
     url(r'^create/', views.Register.as_view(), name='user-create'),
+    url(r'^create/google/', views.Register.as_view(), name='user-create-google'), #TODO email and username as post param
     url(r'^current/friends/', views.CurrentUserFriendList.as_view(), name='current-user-friends'),
     url(r'^current/posts/', views.CurrentUserPostList.as_view(), name='current-user-posts'),
     url(r'^current/', views.CurrentUserDetail.as_view(), name='current-user-detail'),
@@ -24,5 +25,6 @@ urlpatterns = [
     url(r'^users/', include(user_urls)),
     url(r'^wallPosts/$', views.WallPosts.as_view(), name="wall-posts"),
     url(r'^posts/', include(post_urls)),
+    url(r'^token/auth/google/', obtain_auth_token), #TODO email as post param
     url(r'^token/auth/', obtain_auth_token),
 ]
