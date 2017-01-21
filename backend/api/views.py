@@ -36,7 +36,7 @@ class FeedSearchList(APIView):
     )
 
     def post(self, request):
-        text = request.data.get('text', default=None)
+        text = request.data.get('text', None)
         if text is None:
             return Response({"error": "Empty request"}, status=status.HTTP_400_BAD_REQUEST)
         vals = post_search(request.user, text)[:5]
