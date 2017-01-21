@@ -31,7 +31,7 @@ func NewHub(d * sql.DB) *Hub {
 		clients:    make(map[*Client]bool),
 	}
 }
-
+/*
 func checkCount(rows *sql.Rows) (count int) {
 	for rows.Next() {
 		rows.Scan(&count)
@@ -52,14 +52,17 @@ func (h *Hub) checkFriends(token []byte, rhs int) bool {
 	}
 	return true
 }
+*/
 
 func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
+			fmt.Println("Client %s registered", client.id)
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
+				fmt.Println("Client %s unregistered", client.id)
 				delete(h.clients, client)
 				close(client.send)
 			}
@@ -69,6 +72,7 @@ func (h *Hub) Run() {
 					select {
 					case client.send <- message:
 					default:
+						fmt.Println("Couldn't deliver message to user %s", client.id)
 						close(client.send)
 						delete(h.clients, client)
 					}

@@ -27,6 +27,8 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Println("Connected to database!")
+
 	flag.Parse()
 	hub := NewHub(db)
 	go hub.Run()

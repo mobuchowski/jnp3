@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 	"github.com/gorilla/websocket"
+	"fmt"
 )
 
 const (
@@ -67,6 +68,9 @@ func (c *Client) readPump() {
 			}
 			break
 		}
+
+		fmt.Println("Read message from user %s to user %s", c.id, message.receiver)
+
 		c.hub.broadcast <- message
 	}
 }
@@ -87,6 +91,8 @@ func (c *Client) WritePump() {
 				return
 			}
 
+			fmt.Println("Writing message to user %s", c.id)
+
 			c.conn.WriteJSON(message)
 
 		case <-ticker.C:
@@ -101,6 +107,8 @@ func (c *Client) WritePump() {
 
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	idstring := r.URL.RawQuery
+
+	fmt.Println("New user connected: %s", idstring)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
