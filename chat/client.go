@@ -53,6 +53,7 @@ type Message struct {
 	Receiver string `json:"receiver"`
 	Token    string `json:"token"`
 	Msg      string `json:"msg"`
+	Sender   string `json:"sender"`
 }
 
 func (c *Client) readPump() {
@@ -66,6 +67,7 @@ func (c *Client) readPump() {
 	for {
 		message := Message{}
 		err := c.conn.ReadJSON(&message)
+		message.Sender = c.id
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				fmt.Printf("error: %v", err)
@@ -98,7 +100,8 @@ func (c *Client) WritePump() {
 			}
 
 			fmt.Printf("Writing message to user %s\n", c.id)
-
+			message.Token = ""
+			message.Receiver = ""
 			c.conn.WriteJSON(message)
 
 		case <-ticker.C:
