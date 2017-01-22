@@ -38,7 +38,7 @@ var upgrader = websocket.Upgrader{
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	id []byte
+	id string
 
 	hub *Hub
 
@@ -50,9 +50,9 @@ type Client struct {
 }
 
 type Message struct {
-	receiver []byte `json:"receiver"`
-	token    []byte `json:"token"`
-	msg      []byte `json:"msg"`
+	Receiver string `json:"receiver"`
+	Token    string `json:"token"`
+	Msg      string `json:"msg"`
 }
 
 func (c *Client) readPump() {
@@ -75,7 +75,7 @@ func (c *Client) readPump() {
 			break
 		}
 
-		fmt.Printf("Read message from user %s to user %s\n", c.id, message.receiver)
+		fmt.Printf("Read message from user %s to user %#v\n", c.id, message)
 
 		c.hub.broadcast <- message
 	}
@@ -97,7 +97,7 @@ func (c *Client) WritePump() {
 				return
 			}
 
-			fmt.Println("Writing message to user %s", c.id)
+			fmt.Printf("Writing message to user %s\n", c.id)
 
 			c.conn.WriteJSON(message)
 
@@ -114,7 +114,7 @@ func (c *Client) WritePump() {
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	idstring := r.URL.RawQuery
 
-	fmt.Println("New user connected: %s", idstring)
+	fmt.Printf("New user connected: %s\n", idstring)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -123,7 +123,7 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	client := &Client{hub: hub, id: []byte(idstring), conn: conn, send: make(chan Message, 256)}
+	client := &Client{hub: hub, id: idstring, conn: conn, send: make(chan Message, 256)}
 	client.hub.register <- client
 	go client.WritePump()
 	client.readPump()

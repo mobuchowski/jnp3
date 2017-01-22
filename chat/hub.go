@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"bytes"
 )
 
 
@@ -40,9 +39,9 @@ func checkCount(rows *sql.Rows) (count int) {
 }
 
 
-func (h *Hub) checkFriends(token []byte, rhs int) bool {
+func (h *Hub) checkFriends(Token []byte, rhs int) bool {
 	qstring := fmt.Sprintf("SELECT * FROM api_user_friends A join authtoken_token B ON A.from_user_id=B.user_id" +
-		" WHERE B.key='%s' AND from_user_id=B.user_id AND to_user_id=%d", token, rhs)
+		" WHERE B.key='%s' AND from_user_id=B.user_id AND to_user_id=%d", Token, rhs)
 	rows, err := h.db.Query(qstring)
 	if err != nil {
 		panic(err)
@@ -59,20 +58,20 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
-			fmt.Println("Client %s registered", client.id)
+			fmt.Printf("Client %s registered\n", client.id)
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
-				fmt.Println("Client %s unregistered", client.id)
+				fmt.Printf("Client %s unregistered\n", client.id)
 				delete(h.clients, client)
 				close(client.send)
 			}
 		case message := <-h.broadcast:
 			for client := range h.clients {
-				if bytes.Equal(client.id, message.receiver) {
+				if client.id == message.Receiver {
 					select {
 					case client.send <- message:
 					default:
-						fmt.Println("Couldn't deliver message to user %s", client.id)
+						fmt.Printf("Couldn't deliver message to user %s\n", client.id)
 						close(client.send)
 						delete(h.clients, client)
 					}
