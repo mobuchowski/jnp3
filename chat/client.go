@@ -30,9 +30,6 @@ var (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
 }
 
 // Client is a middleman between the websocket connection and the hub.
@@ -67,12 +64,14 @@ func (c *Client) readPump() {
 		err := c.conn.ReadJSON(message)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				log.Printf("error: %v", err)
+				fmt.Printf("error: %v", err)
+			} else {
+				fmt.Printf("Coś się dzieje %s\n", err)
 			}
 			break
 		}
 
-		fmt.Println("Read message from user %s to user %s", c.id, message.receiver)
+		fmt.Printf("Read message from user %s to user %s\n", c.id, message.receiver)
 
 		c.hub.broadcast <- message
 	}
