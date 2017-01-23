@@ -5,4 +5,3 @@
 !.elasticbeanstalk/*.global.yml
 *.pyc
 db.sqlite3
-backend/api/migrations/*

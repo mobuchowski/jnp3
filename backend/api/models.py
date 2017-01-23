@@ -7,9 +7,9 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from django.conf import settings
 
+import architect
 
 # Create your models here.
-
 
 class User(AbstractUser):
     friends = models.ManyToManyField('self', blank=True, related_name='rev-friends', symmetrical=True)
@@ -17,11 +17,11 @@ class User(AbstractUser):
     def __str__(self):
         return self.username + ' ' + self.email
 
-
+@architect.install('partition', type='range', subtype='date', constraint='month', column='created_at')
 class Post(models.Model):
     author = models.ForeignKey(User, null=False)
     body = models.TextField()
-
+    created_at = created_at = models.DateTimeField(auto_now_add=True)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
