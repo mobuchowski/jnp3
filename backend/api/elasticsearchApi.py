@@ -27,8 +27,10 @@ def index_exists():
     return es.indices.exists(index='posts')
 
 def post_search(user, text):
-    friends = [friend.id for friend in user.friends.all()]
+    users = [friend.id for friend in user.friends.all()]
+    users.append(user.id)
     body = {
+        "min_score": 0.5,
         "query": {
             "bool": {
                 "should": {
@@ -36,9 +38,9 @@ def post_search(user, text):
                         "text": text
                     }
                 },
-                "filter": {
-                    "term": {
-                        "author": friends
+                "must": {
+                    "terms": {
+                        "author": users
                     }
                 }
             }
