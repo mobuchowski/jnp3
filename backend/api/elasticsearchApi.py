@@ -36,8 +36,8 @@ def post_search(user, text):
                         "text": text
                     }
                 },
-                "must": {
-                    "terms": {
+                "filter": {
+                    "term": {
                         "author": friends
                     }
                 }
