@@ -50,6 +50,16 @@ REST_FRAMEWORK = {
 
 }
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': 'jnp3-cache.bwqyvj.0001.euc1.cache.amazonaws.com:11211',
+    },
+}
+
+
+
 AUTH_USER_MODEL = 'api.User'
 
 APPEND_SLASH = True

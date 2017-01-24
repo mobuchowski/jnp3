@@ -8,6 +8,8 @@ from rest_framework.authtoken.models import Token
 from django.conf import settings
 
 import architect
+from django.views.decorators.cache import cache_page
+
 
 # Create your models here.
 
@@ -22,6 +24,11 @@ class Post(models.Model):
     author = models.ForeignKey(User, null=False)
     body = models.TextField()
     created_at = created_at = models.DateTimeField(auto_now_add=True)
+
+    @cache_page(60)
+    def dispatch(self, *args, **kwargs):
+        return super(Post, self).dispatch(*args, **kwargs)
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
